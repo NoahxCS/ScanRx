@@ -1021,8 +1021,25 @@
         <section class="report-section" id="reportSection">
             <div class="summary-card">
                 <div class="summary-label">Total Potential Savings</div>
-                <div class="summary-amount" id="savingsAmount">$0</div>
+                <div class="summary-amount" id="savingsAmount">₹0</div>
                 <div class="summary-subtitle">Based on reference pricing</div>
+            </div>
+
+            <div class="report-card glass-solid" id="outputImageCard" style="display: none; padding: 1.25rem;">
+                <div class="report-header" style="background: none; border: none; padding-left: 0; padding-top: 0;">
+                    <h3 class="report-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                            <polyline points="10 9 9 9 8 9" />
+                        </svg>
+                        Analyzed Bill
+                    </h3>
+                </div>
+                <img id="outputImage" style="width: 100%; border-radius: var(--radius-sm); display: block;"
+                    alt="Analyzed Bill">
             </div>
 
             <div class="report-card glass-solid">
@@ -1398,31 +1415,64 @@
 
         function updateAnalyzeButton() {
             const btn = document.getElementById("analyzeButton");
-            const hasKey = !!getApiKey();
+            // const hasKey = !!getApiKey(); // Disabled for mock
             const hasFile = !!selectedFile;
 
-            // Endpoint is optional (defaults to Gemini)
-            btn.disabled = !hasKey || !hasFile;
+            // Encryption/API key check disabled for mock mode
+            btn.disabled = !hasFile;
         }
 
         async function analyzeBill() {
-            if (!selectedFile || !getApiKey()) return;
+            if (!selectedFile) return;
 
             hideError();
+
+            // SIMULATION: Fake Uploading
             showLoading("Uploading bill...");
 
             try {
                 lastFileBase64 = await fileToBase64(selectedFile);
 
+                // SIMULATION: Network Delay (1.5s)
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
                 updateLoadingText("Analyzing with AI...");
 
-                const result = await callAnalyzeAPI(
-                    lastFileBase64,
-                    selectedFile.type
-                );
+                // SIMULATION: Processing Delay (2.5s)
+                await new Promise(resolve => setTimeout(resolve, 2500));
 
                 hideLoading();
-                displayReport(result);
+
+                // SIMULATION: Mock Data
+                const mockResult = {
+                    summary: {
+                        potential_savings: 787,
+                        notes: "The hospital overcharged ₹787 on consumables and minor procedures. While the final bill total falls within a fair aggregate range, item-level analysis reveals unjustified price inflation."
+                    },
+                    items: [
+                        { name: "Surgical Blade", charged: 66, reference: { min: 48, max: 72 }, flag: "fair" },
+                        { name: "Injection Administration", charged: 379, reference: { min: 160, max: 240 }, flag: "overcharge" },
+                        { name: "Nebulization", charged: 392, reference: { min: 280, max: 420 }, flag: "fair" },
+                        { name: "IV Line Insertion", charged: 1104, reference: { min: 480, max: 720 }, flag: "overcharge" },
+                        { name: "2D Echo", charged: 2533, reference: { min: 2400, max: 3600 }, flag: "fair" },
+                        { name: "ESR", charged: 281, reference: { min: 144, max: 216 }, flag: "overcharge" },
+                        { name: "Culture & Sensitivity", charged: 2371, reference: { min: 1600, max: 2400 }, flag: "fair" },
+                        { name: "CBC", charged: 333, reference: { min: 320, max: 480 }, flag: "fair" },
+                        { name: "Stool Examination", charged: 559, reference: { min: 240, max: 360 }, flag: "overcharge" },
+                        { name: "Doppler Study", charged: 4462, reference: { min: 3200, max: 4800 }, flag: "fair" }
+                    ]
+                };
+
+                displayReport(mockResult);
+
+                // SIMULATION: Display the "attached" (uploaded) image
+                const imgCard = document.getElementById('outputImageCard');
+                const img = document.getElementById('outputImage');
+                if (imgCard && img) {
+                    img.src = `data:${selectedFile.type};base64,${lastFileBase64}`;
+                    imgCard.style.display = 'block';
+                }
+
             } catch (error) {
                 hideLoading();
                 handleApiError(error);
@@ -1591,7 +1641,7 @@ If a value is missing, use a reasonable estimate or 0. Focus on accuracy.`;
             reportSection.classList.add("visible");
 
             const savings = data.summary?.potential_savings || 0;
-            savingsAmount.textContent = `$${savings.toLocaleString()}`;
+            savingsAmount.textContent = `₹${savings.toLocaleString()}`;
 
             tableBody.innerHTML = "";
             const items = data.items || [];
@@ -1600,8 +1650,8 @@ If a value is missing, use a reasonable estimate or 0. Focus on accuracy.`;
                 const row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${escapeHtml(item.name)}</td>
-                    <td>$${item.charged.toLocaleString()}</td>
-                    <td>$${item.reference.min.toLocaleString()} - $${item.reference.max.toLocaleString()}</td>
+                    <td>₹${item.charged.toLocaleString()}</td>
+                    <td>₹${item.reference.min.toLocaleString()} - ₹${item.reference.max.toLocaleString()}</td>
                     <td>${getStatusBadge(item.flag)}</td>
                 `;
                 tableBody.appendChild(row);
@@ -1650,7 +1700,7 @@ If a value is missing, use a reasonable estimate or 0. Focus on accuracy.`;
                             <span class="chart-name">${escapeHtml(
                     item.name
                 )}</span>
-                            <span class="chart-values">$${item.charged.toLocaleString()} / $${item.reference.max.toLocaleString()} max</span>
+                            <span class="chart-values">₹${item.charged.toLocaleString()} / ₹${item.reference.max.toLocaleString()} max</span>
                         </div>
                         <div class="chart-bar-bg">
                             <div class="chart-bar-reference" style="width: ${refWidth}%"></div>
