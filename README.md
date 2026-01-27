@@ -6,7 +6,7 @@ The medical industry, while dedicated to healing, is often marred by opaque pric
 
 These malpractices range from simple billing errors and duplicate charges to more systematic issues like "surprise billing" and dramatic price variation for identical services. The result? Patients either pay bills they can't afford or embark on exhausting, time-consuming disputes with insurers and providers—often without the specialized knowledge needed to challenge charges effectively.
 
-## Our Solution: ScanRx
+## Our Solution: ScanRx(https://noahxcs.github.io/ScanRx/)
 
 ScanRx is a visual medical bill auditor designed to empower patients and bring transparency to medical billing. By comparing your medical bill against a comprehensive database of fair market prices for medical items and services, ScanRx automatically identifies price discrepancies and presents them in an intuitive, visual format.
 
