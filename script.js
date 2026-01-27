@@ -255,10 +255,10 @@ function displayDemoResponse() {
   // Build demo results with ss1-ss4 images, then visual section with ss5
   const demoHtml = `
         <div class="demo-results-container">
-          <img src="results/ss1.png" alt="Analysis Result 1" class="demo-result-image" />
-          <img src="results/ss2.png" alt="Analysis Result 2" class="demo-result-image" />
-          <img src="results/ss3.png" alt="Analysis Result 3" class="demo-result-image" />
-          <img src="results/ss4.png" alt="Analysis Result 4" class="demo-result-image" />
+          <img src="Results/ss1.png" alt="Analysis Result 1" class="demo-result-image" />
+          <img src="Results/ss2.png" alt="Analysis Result 2" class="demo-result-image" />
+          <img src="Results/ss3.png" alt="Analysis Result 3" class="demo-result-image" />
+          <img src="Results/ss4.png" alt="Analysis Result 4" class="demo-result-image" />
           
           <div class="visual-section-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -268,7 +268,7 @@ function displayDemoResponse() {
             </svg>
             Easy to Understand Visual Depiction
           </div>
-          <img src="results/ss5.png" alt="Visual Depiction" class="demo-result-image" />
+          <img src="Results/ss5.png" alt="Visual Depiction" class="demo-result-image" />
         </div>
       `;
 
@@ -643,3 +643,4 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+
