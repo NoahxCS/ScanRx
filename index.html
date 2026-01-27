@@ -1,1774 +1,219 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="ScanRx - AI-powered medical bill analyzer to detect potential overcharges" />
-    <title>ScanRx - Medical Bill Analyzer</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet" />
-    <style>
-        :root {
-            /* Colors extracted from the background image - teal/cyan/green palette */
-            --teal-dark: #125e5e;
-            --teal: #1a7a7a;
-            --teal-light: #2aa5a5;
-            --cyan: #3dbfbf;
-            --cyan-light: #4fc3c3;
-            --green-accent: #689f38;
-            --green-soft: #8bc34a;
-            --blue-accent: #2c6e81;
-            --red-accent: #d32f2f;
-
-            --glass-bg: rgba(255, 255, 255, 0.25);
-            --glass-bg-solid: rgba(255, 255, 255, 0.4);
-            --glass-border: rgba(255, 255, 255, 0.4);
-            --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
-            --glass-shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.18);
-
-            /* Darker text colors for better readability */
-            --text-primary: #0a1f1f;
-            --text-secondary: #142e2e;
-            --text-muted: #2d4545;
-            --text-light: #ffffff;
-
-            --radius: 20px;
-            --radius-sm: 12px;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-            min-height: 100vh;
-            line-height: 1.6;
-            color: var(--text-primary);
-            background: url("background.png") no-repeat center center fixed;
-            background-size: cover;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* Glass Effect */
-        .glass {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow);
-        }
-
-        .glass-solid {
-            background: var(--glass-bg-solid);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: var(--glass-shadow);
-        }
-
-        /* Header */
-        .header {
-            padding: 1rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.05);
-        }
-
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-        }
-
-        .logo-image {
-            height: 60px;
-            width: auto;
-            object-fit: contain;
-            transition: transform 0.3s ease;
-        }
-
-        .logo-image:hover {
-            transform: scale(1.02);
-            filter: drop-shadow(0 0 15px rgba(26, 122, 122, 0.3));
-        }
-
-        /* Main Container */
-        .container {
-            max-width: 680px;
-            margin: 0 auto;
-            padding: 2.5rem 1.5rem;
-        }
-
-        /* Upload Section */
-        .upload-section {
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-        }
-
-        .upload-card {
-            border-radius: var(--radius);
-            padding: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .upload-card:hover {
-            box-shadow: var(--glass-shadow-hover);
-        }
-
-        .upload-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            text-align: center;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .upload-title svg {
-            width: 20px;
-            height: 20px;
-            stroke: var(--teal-dark);
-            stroke-width: 2.5px;
-        }
-
-        .upload-zone {
-            border: 2px dashed var(--teal);
-            border-radius: var(--radius-sm);
-            padding: 2.5rem 1.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        .upload-zone:hover {
-            border-color: var(--teal-dark);
-            background: rgba(25, 94, 94, 0.08);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(18, 94, 94, 0.15);
-        }
-
-        .upload-zone.dragover {
-            border-color: var(--teal-dark);
-            background: rgba(18, 94, 94, 0.12);
-            transform: scale(1.01);
-        }
-
-        .upload-zone.has-file {
-            border-color: var(--green-accent);
-            background: rgba(104, 159, 56, 0.08);
-        }
-
-        .upload-icon {
-            width: 44px;
-            height: 44px;
-            margin: 0 auto 1rem;
-        }
-
-        .upload-icon svg {
-            width: 100%;
-            height: 100%;
-            stroke: var(--teal-dark);
-            stroke-width: 2px;
-            opacity: 0.8;
-        }
-
-        .upload-text {
-            font-size: 1rem;
-            color: var(--text-primary);
-            font-weight: 500;
-            margin-bottom: 0.375rem;
-        }
-
-        .upload-text strong {
-            color: var(--teal-dark);
-            font-weight: 700;
-        }
-
-        .upload-hint {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .file-info {
-            margin-top: 1.25rem;
-            padding: 0.875rem;
-            background: rgba(104, 159, 56, 0.1);
-            border: 1px solid rgba(104, 159, 56, 0.3);
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .file-info.hidden {
-            display: none;
-        }
-
-        .file-icon-wrapper {
-            width: 36px;
-            height: 36px;
-            background: rgba(104, 159, 56, 0.15);
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .file-icon-wrapper svg {
-            width: 18px;
-            height: 18px;
-            stroke: var(--green-accent);
-            stroke-width: 2.5px;
-        }
-
-        .file-details {
-            flex: 1;
-        }
-
-        .file-name {
-            font-weight: 700;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-        }
-
-        .file-size {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            font-weight: 600;
-        }
-
-        .file-remove {
-            background: rgba(211, 47, 47, 0.1);
-            border: 1px solid rgba(211, 47, 47, 0.3);
-            color: var(--red-accent);
-            cursor: pointer;
-            width: 30px;
-            height: 30px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .file-remove:hover {
-            background: rgba(211, 47, 47, 0.2);
-        }
-
-        .file-remove svg {
-            width: 14px;
-            height: 14px;
-            stroke: currentColor;
-            stroke-width: 3px;
-        }
-
-        .hidden-input {
-            display: none;
-        }
-
-        /* Error Message */
-        .error-message {
-            background: rgba(211, 47, 47, 0.12);
-            border: 1px solid rgba(211, 47, 47, 0.35);
-            border-radius: var(--radius-sm);
-            padding: 0.875rem;
-            color: #b71c1c;
-            font-size: 0.9rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .error-message.hidden {
-            display: none;
-        }
-
-        .error-icon {
-            width: 16px;
-            height: 16px;
-            flex-shrink: 0;
-            stroke-width: 2.5px;
-        }
-
-        /* Glass Button */
-        .btn-analyze {
-            background: linear-gradient(135deg,
-                    var(--teal-dark) 0%,
-                    var(--teal) 100%);
-            color: white;
-            border: none;
-            padding: 1rem 1.75rem;
-            border-radius: var(--radius-sm);
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.6rem;
-            transition: all 0.4s ease;
-            width: 100%;
-            font-family: inherit;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 4px 16px rgba(18, 94, 94, 0.4);
-        }
-
-        .btn-analyze::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg,
-                    transparent,
-                    rgba(255, 255, 255, 0.25),
-                    transparent);
-            transition: left 0.5s ease;
-        }
-
-        .btn-analyze:hover:not(:disabled)::before {
-            left: 100%;
-        }
-
-        .btn-analyze:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(18, 94, 94, 0.5);
-        }
-
-        .btn-analyze:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .btn-analyze svg {
-            width: 18px;
-            height: 18px;
-            stroke-width: 2.5px;
-        }
-
-        /* Spinner */
-        .spinner {
-            width: 18px;
-            height: 18px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Report Section */
-        .report-section {
-            display: none;
-            flex-direction: column;
-            gap: 1.25rem;
-            margin-top: 1.75rem;
-            animation: fadeInUp 0.5s ease;
-        }
-
-        .report-section.visible {
-            display: flex;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Summary Card */
-        .summary-card {
-            background: linear-gradient(135deg,
-                    var(--teal-dark) 0%,
-                    var(--teal) 100%);
-            border-radius: var(--radius);
-            padding: 1.75rem;
-            text-align: center;
-            box-shadow: 0 8px 24px rgba(18, 94, 94, 0.4);
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .summary-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg,
-                    rgba(255, 255, 255, 0.2) 0%,
-                    transparent 50%);
-        }
-
-        .summary-label {
-            font-size: 0.95rem;
-            font-weight: 600;
-            opacity: 1;
-            margin-bottom: 0.25rem;
-            position: relative;
-            letter-spacing: 0.5px;
-        }
-
-        .summary-amount {
-            font-size: 2.75rem;
-            font-weight: 800;
-            position: relative;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .summary-subtitle {
-            font-size: 0.85rem;
-            opacity: 0.9;
-            margin-top: 0.25rem;
-            position: relative;
-            font-weight: 500;
-        }
-
-        /* Report Card */
-        .report-card {
-            border-radius: var(--radius);
-            overflow: hidden;
-        }
-
-        .report-header {
-            padding: 1rem 1.25rem;
-            background: rgba(255, 255, 255, 0.35);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.45);
-        }
-
-        .report-title {
-            font-size: 1.05rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-primary);
-        }
-
-        .report-title svg {
-            width: 18px;
-            height: 18px;
-            stroke: var(--teal-dark);
-            stroke-width: 2.5px;
-        }
-
-        /* Table */
-        .table-container {
-            overflow-x: auto;
-        }
-
-        .report-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .report-table th {
-            background: rgba(0, 0, 0, 0.05);
-            font-weight: 800;
-            font-size: 0.75rem;
-            color: var(--text-primary);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            padding: 1rem;
-            text-align: left;
-        }
-
-        .report-table td {
-            padding: 1rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-        }
-
-        .report-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .report-table tr:hover {
-            background: rgba(25, 94, 94, 0.05);
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.4rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 700;
-        }
-
-        .status-badge.fair {
-            background: rgba(104, 159, 56, 0.2);
-            color: #2e7d32;
-        }
-
-        .status-badge.borderline {
-            background: rgba(255, 179, 0, 0.2);
-            color: #ef6c00;
-        }
-
-        .status-badge.overcharge {
-            background: rgba(211, 47, 47, 0.2);
-            color: #c62828;
-        }
-
-        .status-badge svg {
-            width: 12px;
-            height: 12px;
-            stroke-width: 3px;
-        }
-
-        /* Bar Chart */
-        .bar-chart-container {
-            padding: 1.25rem;
-        }
-
-        .chart-item {
-            margin-bottom: 1.5rem;
-        }
-
-        .chart-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .chart-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-            font-weight: 700;
-        }
-
-        .chart-name {
-            color: var(--text-primary);
-        }
-
-        .chart-values {
-            color: var(--text-secondary);
-            font-weight: 600;
-        }
-
-        .chart-bar-bg {
-            height: 22px;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 11px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .chart-bar-reference {
-            position: absolute;
-            height: 100%;
-            background: rgba(18, 94, 94, 0.25);
-            border-radius: 11px;
-        }
-
-        .chart-bar-charged {
-            position: absolute;
-            height: 100%;
-            border-radius: 11px;
-            transition: width 0.8s ease;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .chart-bar-charged.fair {
-            background: linear-gradient(90deg, #689f38, #8bc34a);
-        }
-
-        .chart-bar-charged.borderline {
-            background: linear-gradient(90deg, #ffa000, #ffc107);
-        }
-
-        .chart-bar-charged.overcharge {
-            background: linear-gradient(90deg, #d32f2f, #e57373);
-        }
-
-        .chart-legend {
-            display: flex;
-            gap: 1.25rem;
-            margin-top: 0.625rem;
-            font-size: 0.75rem;
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .legend-color {
-            width: 10px;
-            height: 10px;
-            border-radius: 3px;
-        }
-
-        .legend-color.reference {
-            background: rgba(18, 94, 94, 0.4);
-        }
-
-        /* Retry Button */
-        .btn-retry {
-            background: rgba(255, 255, 255, 0.6);
-            color: var(--text-primary);
-            border: 2px solid rgba(18, 94, 94, 0.3);
-            padding: 0.5rem 1rem;
-            border-radius: var(--radius-sm);
-            font-weight: 700;
-            cursor: pointer;
-            margin-left: 0.625rem;
-            font-family: inherit;
-            font-size: 0.8rem;
-            transition: all 0.3s ease;
-        }
-
-        .btn-retry:hover {
-            background: rgba(255, 255, 255, 0.85);
-            border-color: var(--teal-dark);
-        }
-
-        /* Loading Overlay */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.85);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            backdrop-filter: blur(12px);
-        }
-
-        .loading-overlay.hidden {
-            display: none;
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(18, 94, 94, 0.15);
-            border-top-color: var(--teal-dark);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 1.5rem;
-        }
-
-        .loading-text {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        /* Dev Settings */
-        .dev-settings {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 2000;
-            width: 90%;
-            max-width: 420px;
-            padding: 1.75rem;
-            border-radius: var(--radius);
-            animation: fadeIn 0.3s ease;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .dev-settings.visible {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translate(-50%, -50%) scale(0.96);
-            }
-
-            to {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1);
-            }
-        }
-
-        .dev-settings-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.3);
-            z-index: 1999;
-            backdrop-filter: blur(5px);
-        }
-
-        .dev-settings-overlay.visible {
-            display: block;
-        }
-
-        .dev-settings-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.25rem;
-        }
-
-        .dev-settings-title {
-            font-size: 1.15rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-primary);
-        }
-
-        .dev-settings-title svg {
-            width: 18px;
-            height: 18px;
-            stroke: var(--teal-dark);
-        }
-
-        .dev-settings-close {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 0.375rem;
-            transition: color 0.3s ease;
-            display: flex;
-        }
-
-        .dev-settings-close:hover {
-            color: var(--text-primary);
-        }
-
-        .dev-settings-close svg {
-            width: 20px;
-            height: 20px;
-            stroke-width: 2.5px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-            margin-bottom: 1rem;
-        }
-
-        .form-label {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .form-input {
-            background: rgba(255, 255, 255, 0.8);
-            border: 2px solid rgba(0, 0, 0, 0.1);
-            border-radius: var(--radius-sm);
-            padding: 0.875rem;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            font-weight: 600;
-            font-family: inherit;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--teal-dark);
-            box-shadow: 0 0 0 3px rgba(18, 94, 94, 0.15);
-        }
-
-        .form-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        textarea.form-input {
-            resize: vertical;
-            min-height: 70px;
-        }
-
-        .form-note {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .btn-test {
-            background: linear-gradient(135deg,
-                    var(--teal-dark) 0%,
-                    var(--teal) 100%);
-            color: white;
-            border: none;
-            padding: 0.875rem 1.25rem;
-            border-radius: var(--radius-sm);
-            font-weight: 800;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-            font-family: inherit;
-            font-size: 0.9rem;
-            width: 100%;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(18, 94, 94, 0.3);
-        }
-
-        .btn-test:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(18, 94, 94, 0.4);
-        }
-
-        .btn-test svg {
-            width: 16px;
-            height: 16px;
-            stroke-width: 2.5px;
-        }
-
-        .connection-status {
-            margin-top: 0.875rem;
-            padding: 0.75rem 1rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.85rem;
-            font-weight: 700;
-            text-align: center;
-            display: none;
-        }
-
-        .connection-status.success {
-            display: block;
-            background: rgba(104, 159, 56, 0.15);
-            color: #2e7d32;
-            border: 1px solid rgba(104, 159, 56, 0.3);
-        }
-
-        .connection-status.error {
-            display: block;
-            background: rgba(211, 47, 47, 0.15);
-            color: #b71c1c;
-            border: 1px solid rgba(211, 47, 47, 0.3);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header {
-                padding: 0.875rem 1rem;
-            }
-
-            .container {
-                padding: 1.75rem 1rem;
-            }
-
-            .logo-image {
-                height: 40px;
-            }
-
-            .upload-card {
-                padding: 1.5rem;
-            }
-
-            .upload-zone {
-                padding: 2rem 1rem;
-            }
-
-            .summary-amount {
-                font-size: 2.25rem;
-            }
-
-            .report-table th,
-            .report-table td {
-                padding: 0.875rem;
-                font-size: 0.85rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ScanRx - AI-powered medical bill analyzer to detect potential overcharges" />
+  <title>ScanRx - Medical Bill Analyzer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-    <header class="header">
-        <div class="header-content">
-            <div class="logo">
-                <img src="logo.png" alt="ScanRx Medical Bill Analyzer" class="logo-image" />
-            </div>
-        </div>
-    </header>
-
-    <main class="container">
-        <section class="upload-section" id="uploadSection">
-            <div class="upload-card glass-solid">
-                <h2 class="upload-title">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                        <polyline points="14 2 14 8 20 8" />
-                        <line x1="16" y1="13" x2="8" y2="13" />
-                        <line x1="16" y1="17" x2="8" y2="17" />
-                    </svg>
-                    Upload Your Medical Bill
-                </h2>
-
-                <div class="upload-zone" id="uploadZone" onclick="triggerFileInput()">
-                    <div class="upload-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                            <polyline points="17 8 12 3 7 8" />
-                            <line x1="12" y1="3" x2="12" y2="15" />
-                        </svg>
-                    </div>
-                    <div class="upload-text">
-                        Drop your bill here or <strong>browse files</strong>
-                    </div>
-                    <div class="upload-hint">JPG, PNG, or PDF up to 10MB</div>
-                </div>
-
-                <input type="file" id="fileInput" class="hidden-input" accept=".jpg,.jpeg,.png,.pdf"
-                    onchange="handleFileSelect(event)" />
-
-                <div class="file-info hidden" id="fileInfo">
-                    <div class="file-icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                            <polyline points="14 2 14 8 20 8" />
-                        </svg>
-                    </div>
-                    <div class="file-details">
-                        <div class="file-name" id="fileName"></div>
-                        <div class="file-size" id="fileSize"></div>
-                    </div>
-                    <button class="file-remove" onclick="removeFile(event)">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <div class="error-message hidden" id="errorMessage">
-                <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-                <span id="errorText"></span>
-                <button class="btn-retry hidden" id="retryButton" onclick="retryAnalysis()">
-                    Retry
-                </button>
-            </div>
-
-            <button class="btn-analyze" id="analyzeButton" onclick="analyzeBill()" disabled>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-                Analyze Bill
-            </button>
-        </section>
-
-        <section class="report-section" id="reportSection">
-            <div class="summary-card">
-                <div class="summary-label">Total Potential Savings</div>
-                <div class="summary-amount" id="savingsAmount">₹0</div>
-                <div class="summary-subtitle">Based on reference pricing</div>
-            </div>
-
-            <div class="report-card glass-solid" id="outputImageCard" style="display: none; padding: 1.25rem;">
-                <div class="report-header" style="background: none; border: none; padding-left: 0; padding-top: 0;">
-                    <h3 class="report-title">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                            <polyline points="14 2 14 8 20 8" />
-                            <line x1="16" y1="13" x2="8" y2="13" />
-                            <line x1="16" y1="17" x2="8" y2="17" />
-                            <polyline points="10 9 9 9 8 9" />
-                        </svg>
-                        Analyzed Bill
-                    </h3>
-                </div>
-                <img id="outputImage" style="width: 100%; border-radius: var(--radius-sm); display: block;"
-                    alt="Analyzed Bill">
-            </div>
-
-            <div class="report-card glass-solid">
-                <div class="report-header">
-                    <h3 class="report-title">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="8" y1="6" x2="21" y2="6" />
-                            <line x1="8" y1="12" x2="21" y2="12" />
-                            <line x1="8" y1="18" x2="21" y2="18" />
-                            <line x1="3" y1="6" x2="3.01" y2="6" />
-                            <line x1="3" y1="12" x2="3.01" y2="12" />
-                            <line x1="3" y1="18" x2="3.01" y2="18" />
-                        </svg>
-                        Itemized Breakdown
-                    </h3>
-                </div>
-                <div class="table-container">
-                    <table class="report-table">
-                        <thead>
-                            <tr>
-                                <th>Procedure</th>
-                                <th>Charged</th>
-                                <th>Reference</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="reportTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="report-card glass-solid">
-                <div class="report-header">
-                    <h3 class="report-title">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="20" x2="18" y2="10" />
-                            <line x1="12" y1="20" x2="12" y2="4" />
-                            <line x1="6" y1="20" x2="6" y2="14" />
-                        </svg>
-                        Price Comparison
-                    </h3>
-                </div>
-                <div class="bar-chart-container" id="barChartContainer"></div>
-            </div>
-        </section>
-    </main>
-
-    <div class="loading-overlay hidden" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-        <div class="loading-text" id="loadingText">Uploading...</div>
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">
+        <img src="scanrx-assets/logo.png" alt="ScanRx Medical Bill Analyzer" class="logo-image" />
+      </div>
     </div>
+  </header>
 
-    <div class="dev-settings-overlay" id="devSettingsOverlay" onclick="closeDevSettings()"></div>
-    <div class="dev-settings" id="devSettings">
-        <div class="dev-settings-header">
-            <div class="dev-settings-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="3" />
-                    <path
-                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                </svg>
-                Settings
-            </div>
-            <button class="dev-settings-close" onclick="closeDevSettings()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-            </button>
-        </div>
-        <div class="form-group">
-            <label class="form-label" for="modelId">Model ID</label>
-            <input type="text" id="modelId" class="form-input" placeholder="gemini-2.0-flash" list="modelOptions" />
-            <datalist id="modelOptions">
-                <option value="gemini-2.0-flash-exp">
-                <option value="gemini-2.5-flash">
-                <option value="gemini-1.5-flash">
-                <option value="gemini-1.5-pro">
-            </datalist>
-            <span class="form-note">Use "gemini-2.0-flash-exp" for 2.0</span>
-        </div>
-        <div class="form-group">
-            <label class="form-label" for="apiKey">API Key</label>
-            <input type="password" id="apiKey" class="form-input" placeholder="Enter API key" />
-        </div>
-        <div class="form-group">
-            <label class="form-label" for="systemPrompt">System Prompt</label>
-            <textarea id="systemPrompt" class="form-input" placeholder="Optional"></textarea>
-            <span class="form-note">Leave empty for default</span>
-        </div>
-        <button class="btn-test" onclick="testConnection()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+  <main class="container">
+    <section class="upload-section" id="uploadSection">
+      <div class="upload-card glass-solid">
+        <h2 class="upload-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+          </svg>
+          Upload Your Medical Bill
+        </h2>
+
+        <div class="upload-zone" id="uploadZone" onclick="triggerFileInput()">
+          <div class="upload-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
-            Test Connection
+          </div>
+          <div class="upload-text">
+            Drop your bill here or <strong>browse files</strong>
+          </div>
+          <div class="upload-hint">JPG, PNG, or PDF up to 4MB</div>
+        </div>
+
+        <input type="file" id="fileInput" class="hidden-input" accept=".jpg,.jpeg,.png,.pdf"
+          onchange="handleFileSelect(event)" />
+
+        <div class="file-info hidden" id="fileInfo">
+          <div class="file-icon-wrapper">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+          </div>
+          <div class="file-details">
+            <div class="file-name" id="fileName"></div>
+            <div class="file-size" id="fileSize"></div>
+          </div>
+          <button class="file-remove" onclick="removeFile(event)">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="demo-file-section">
+          <div class="demo-divider">
+            <span>or try our demo</span>
+          </div>
+          <div class="demo-buttons-container">
+            <button class="btn-demo-file" id="demoFileBtn" onclick="selectDemoFile()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+              <span>hospital-bill.pdf</span>
+              <span class="demo-badge">Demo</span>
+            </button>
+            <button class="btn-preview-file" onclick="previewDemoFile(event)" title="Preview PDF">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="error-message hidden" id="errorMessage">
+        <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <span id="errorText"></span>
+        <button class="btn-retry hidden" id="retryButton" onclick="retryAnalysis()">
+          Retry
         </button>
-        <div class="connection-status" id="connectionStatus"></div>
+      </div>
+
+      <button class="btn-analyze" id="analyzeButton" onclick="analyzeBill()" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        Analyze Bill
+      </button>
+    </section>
+
+    <section class="report-section" id="reportSection">
+      <div class="report-card glass-solid" id="outputImageCard" style="display: none; padding: 1.25rem">
+        <div class="report-header" style="
+              background: none;
+              border: none;
+              padding-left: 0;
+              padding-top: 0;
+            ">
+          <h3 class="report-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
+            </svg>
+            Uploaded Bill
+          </h3>
+        </div>
+        <img id="outputImage" style="width: 100%; border-radius: var(--radius-sm); display: block"
+          alt="Uploaded Bill" />
+      </div>
+
+      <div class="report-card glass-solid">
+        <div class="report-header">
+          <h3 class="report-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>
+            AI Analysis Results
+          </h3>
+        </div>
+        <div style="padding: 1.25rem">
+          <div id="aiResponseText" class="ai-response-container"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="loading-overlay hidden" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text" id="loadingText">Uploading...</div>
+  </div>
+
+  <!-- API Constraint Modal -->
+  <div class="modal-overlay hidden" id="apiConstraintModal">
+    <div class="modal-content glass-solid">
+      <div class="modal-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          style="width: 24px; height: 24px; color: var(--teal-dark);">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <h3>API Constraints</h3>
+      </div>
+      <p>Due to API constraints, we cannot process this file at the moment.</p>
+      <p style="margin-top: 0.5rem; font-weight: 600;">Would you like to see a preprocessed result instead?</p>
+      <div class="modal-buttons">
+        <button class="btn-modal-cancel" onclick="closeApiModal()">Cancel</button>
+        <button class="btn-modal-confirm" onclick="showDemoResults()">Show Demo Result</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dev-settings-overlay" id="devSettingsOverlay" onclick="closeDevSettings()"></div>
+  <div class="dev-settings" id="devSettings">
+    <div class="dev-settings-header">
+      <div class="dev-settings-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+        Settings
+      </div>
+      <button class="dev-settings-close" onclick="closeDevSettings()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
     </div>
 
-    <script>
-        // =====================================================
-        // CONFIGURATION
-        // =====================================================
-        // using gemini-1.5-flash for fast multimodal (image/pdf) processing
-        const DEFAULT_MODEL = "gemini-2.0-flash-exp";
-        const BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
-        const API_KEY_STORAGE = "scanrx_api_key";
-
-        // =====================================================
-        // STATE
-        // =====================================================
-        let selectedFile = null;
-        let lastFileBase64 = null;
-
-        // =====================================================
-        // INITIALIZATION
-        // =====================================================
-        document.addEventListener("DOMContentLoaded", () => {
-            initDragAndDrop();
-            loadSettings();
-            updateAnalyzeButton();
-            initKeyboardShortcuts();
-        });
-
-        // =====================================================
-        // DEVELOPER SETTINGS
-        // =====================================================
-        function initKeyboardShortcuts() {
-            document.addEventListener("keydown", (e) => {
-                if (e.ctrlKey && e.shiftKey && e.key === "S") {
-                    e.preventDefault();
-                    openDevSettings();
-                }
-                if (e.key === "Escape") {
-                    closeDevSettings();
-                }
-            });
-        }
-
-        function openDevSettings() {
-            document.getElementById("devSettings").classList.add("visible");
-            document.getElementById("devSettingsOverlay").classList.add("visible");
-        }
-
-        function closeDevSettings() {
-            document.getElementById("devSettings").classList.remove("visible");
-            document
-                .getElementById("devSettingsOverlay")
-                .classList.remove("visible");
-        }
-
-        function loadSettings() {
-            const savedApiKey = localStorage.getItem(API_KEY_STORAGE);
-            if (savedApiKey) {
-                document.getElementById("apiKey").value = savedApiKey;
-            }
-
-            // Default model if not saved
-            const savedModel = localStorage.getItem("scanrx_model_id");
-            document.getElementById("modelId").value = savedModel || DEFAULT_MODEL;
-
-            const savedPrompt = localStorage.getItem("scanrx_system_prompt");
-            if (savedPrompt) {
-                document.getElementById("systemPrompt").value = savedPrompt;
-            }
-        }
-
-        function saveSettings() {
-            const apiKey = document.getElementById("apiKey").value.trim();
-            const modelId = document.getElementById("modelId").value.trim();
-            const systemPrompt = document
-                .getElementById("systemPrompt")
-                .value.trim();
-
-            if (apiKey) {
-                localStorage.setItem(API_KEY_STORAGE, apiKey);
-            } else {
-                localStorage.removeItem(API_KEY_STORAGE);
-            }
-
-            if (modelId) {
-                localStorage.setItem("scanrx_model_id", modelId);
-            } else {
-                localStorage.removeItem("scanrx_model_id");
-            }
-
-            if (systemPrompt) {
-                localStorage.setItem("scanrx_system_prompt", systemPrompt);
-            } else {
-                localStorage.removeItem("scanrx_system_prompt");
-            }
-        }
-
-        document.getElementById("apiKey").addEventListener("input", () => {
-            saveSettings();
-            updateAnalyzeButton();
-        });
-        document
-            .getElementById("modelId")
-            .addEventListener("input", saveSettings);
-        document
-            .getElementById("systemPrompt")
-            .addEventListener("input", saveSettings);
-
-        async function testConnection() {
-            const statusEl = document.getElementById("connectionStatus");
-            const apiKey = getApiKey();
-            const url = getApiUrl();
-
-            if (!apiKey) {
-                statusEl.className = "connection-status error";
-                statusEl.textContent = "❌ Please enter an API key";
-                return;
-            }
-
-            statusEl.className = "connection-status";
-            statusEl.style.display = "block";
-            statusEl.textContent = "⏳ Testing generation...";
-            statusEl.style.background = "rgba(25, 94, 94, 0.1)";
-            statusEl.style.color = "var(--teal-dark)";
-
-            try {
-                // Test actual generation to verify permissions
-                const response = await fetch(`${url}?key=${apiKey}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: "Hello" }] }],
-                    }),
-                });
-
-                if (response.ok) {
-                    statusEl.className = "connection-status success";
-                    statusEl.textContent = "✅ API Connected & Generating";
-                } else {
-                    const err = await response.json();
-                    throw new Error(err.error?.message || "Connection failed");
-                }
-            } catch (error) {
-                statusEl.className = "connection-status error";
-                statusEl.textContent = "❌ Failed: " + error.message;
-            }
-        }
-
-        // =====================================================
-        // FILE UPLOAD
-        // =====================================================
-        function initDragAndDrop() {
-            const zone = document.getElementById("uploadZone");
-
-            ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
-                zone.addEventListener(eventName, preventDefaults, false);
-            });
-
-            ["dragenter", "dragover"].forEach((eventName) => {
-                zone.addEventListener(
-                    eventName,
-                    () => zone.classList.add("dragover"),
-                    false
-                );
-            });
-
-            ["dragleave", "drop"].forEach((eventName) => {
-                zone.addEventListener(
-                    eventName,
-                    () => zone.classList.remove("dragover"),
-                    false
-                );
-            });
-
-            zone.addEventListener("drop", handleDrop, false);
-        }
-
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        function triggerFileInput() {
-            document.getElementById("fileInput").click();
-        }
-
-        function handleDrop(e) {
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                processFile(files[0]);
-            }
-        }
-
-        function handleFileSelect(e) {
-            const files = e.target.files;
-            if (files.length > 0) {
-                processFile(files[0]);
-            }
-        }
-
-        function processFile(file) {
-            hideError();
-
-            const validTypes = ["image/jpeg", "image/png", "application/pdf"];
-            if (!validTypes.includes(file.type)) {
-                showError("Only JPG, PNG, or PDF files are accepted");
-                return;
-            }
-
-            const maxSize = 10 * 1024 * 1024;
-            if (file.size > maxSize) {
-                showError("File too large (max 10MB)");
-                return;
-            }
-
-            selectedFile = file;
-            displayFileInfo(file);
-            updateAnalyzeButton();
-        }
-
-        function displayFileInfo(file) {
-            const fileInfo = document.getElementById("fileInfo");
-            const fileName = document.getElementById("fileName");
-            const fileSize = document.getElementById("fileSize");
-            const uploadZone = document.getElementById("uploadZone");
-
-            fileName.textContent = file.name;
-            fileSize.textContent = formatFileSize(file.size);
-
-            fileInfo.classList.remove("hidden");
-            uploadZone.classList.add("has-file");
-        }
-
-        function removeFile(e) {
-            if (e) {
-                e.stopPropagation();
-            }
-            selectedFile = null;
-            lastFileBase64 = null;
-
-            const fileInput = document.getElementById("fileInput");
-            fileInput.value = "";
-
-            document.getElementById("fileInfo").classList.add("hidden");
-            document.getElementById("uploadZone").classList.remove("has-file");
-
-            updateAnalyzeButton();
-        }
-
-        function formatFileSize(bytes) {
-            if (bytes === 0) return "0 Bytes";
-            const k = 1024;
-            const sizes = ["Bytes", "KB", "MB", "GB"];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-        }
-
-        // =====================================================
-        // ANALYZE BILL
-        // =====================================================
-        function getApiKey() {
-            return (
-                document.getElementById("apiKey").value.trim() ||
-                localStorage.getItem(API_KEY_STORAGE) ||
-                ""
-            );
-        }
-
-        function getApiUrl() {
-            const modelId =
-                document.getElementById("modelId").value.trim() ||
-                localStorage.getItem("scanrx_model_id") ||
-                DEFAULT_MODEL;
-            return `${BASE_URL}${modelId}:generateContent`;
-        }
-
-        function updateAnalyzeButton() {
-            const btn = document.getElementById("analyzeButton");
-            // const hasKey = !!getApiKey(); // Disabled for mock
-            const hasFile = !!selectedFile;
-
-            // Encryption/API key check disabled for mock mode
-            btn.disabled = !hasFile;
-        }
-
-        async function analyzeBill() {
-            if (!selectedFile) return;
-
-            hideError();
-
-            // SIMULATION: Fake Uploading
-            showLoading("Uploading bill...");
-
-            try {
-                lastFileBase64 = await fileToBase64(selectedFile);
-
-                // SIMULATION: Network Delay (1.5s)
-                await new Promise(resolve => setTimeout(resolve, 1500));
-
-                updateLoadingText("Analyzing with AI...");
-
-                // SIMULATION: Processing Delay (2.5s)
-                await new Promise(resolve => setTimeout(resolve, 2500));
-
-                hideLoading();
-
-                // SIMULATION: Mock Data
-                const mockResult = {
-                    summary: {
-                        potential_savings: 787,
-                        notes: "The hospital overcharged ₹787 on consumables and minor procedures. While the final bill total falls within a fair aggregate range, item-level analysis reveals unjustified price inflation."
-                    },
-                    items: [
-                        { name: "Surgical Blade", charged: 66, reference: { min: 48, max: 72 }, flag: "fair" },
-                        { name: "Injection Administration", charged: 379, reference: { min: 160, max: 240 }, flag: "overcharge" },
-                        { name: "Nebulization", charged: 392, reference: { min: 280, max: 420 }, flag: "fair" },
-                        { name: "IV Line Insertion", charged: 1104, reference: { min: 480, max: 720 }, flag: "overcharge" },
-                        { name: "2D Echo", charged: 2533, reference: { min: 2400, max: 3600 }, flag: "fair" },
-                        { name: "ESR", charged: 281, reference: { min: 144, max: 216 }, flag: "overcharge" },
-                        { name: "Culture & Sensitivity", charged: 2371, reference: { min: 1600, max: 2400 }, flag: "fair" },
-                        { name: "CBC", charged: 333, reference: { min: 320, max: 480 }, flag: "fair" },
-                        { name: "Stool Examination", charged: 559, reference: { min: 240, max: 360 }, flag: "overcharge" },
-                        { name: "Doppler Study", charged: 4462, reference: { min: 3200, max: 4800 }, flag: "fair" }
-                    ]
-                };
-
-                displayReport(mockResult);
-
-                // SIMULATION: Display the "attached" (uploaded) image
-                const imgCard = document.getElementById('outputImageCard');
-                const img = document.getElementById('outputImage');
-                if (imgCard && img) {
-                    img.src = `data:${selectedFile.type};base64,${lastFileBase64}`;
-                    imgCard.style.display = 'block';
-                }
-
-            } catch (error) {
-                hideLoading();
-                handleApiError(error);
-            }
-        }
-
-        async function retryAnalysis() {
-            if (!lastFileBase64) {
-                if (selectedFile) {
-                    await analyzeBill();
-                }
-                return;
-            }
-
-            hideError();
-            showLoading("Retrying analysis...");
-
-            try {
-                const result = await callAnalyzeAPI(
-                    lastFileBase64,
-                    selectedFile.type,
-                    true
-                );
-                hideLoading();
-                displayReport(result);
-            } catch (error) {
-                hideLoading();
-                handleApiError(error);
-            }
-        }
-
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => {
-                    const base64 = reader.result.split(",")[1];
-                    resolve(base64);
-                };
-                reader.onerror = (error) => reject(error);
-            });
-        }
-
-        async function callAnalyzeAPI(base64File, mimeType, isRetry = false) {
-            const url = getApiUrl();
-            const apiKey = getApiKey();
-
-            // System prompt to enforce JSON structure
-            const systemPrompt =
-                document.getElementById("systemPrompt").value.trim() ||
-                `You are an expert medical bill analyzer. Extract information from the provided medical bill image/PDF and check for potential errors or overcharges against standard reference rates (CPT codes).
-
-RETURN ONLY RAW JSON. Do not include markdown formatting (like \`\`\`json). The JSON must match this schema:
-{
-  "summary": {
-    "potential_savings": 150,
-    "notes": "Brief summary of findings"
-  },
-  "items": [
-    {
-      "name": "Procedure Name",
-      "charged": 500,
-      "reference": { "min": 200, "max": 400 },
-      "flag": "overcharge"
-    }
-  ]
-}
-Possible flags: "fair", "borderline", "overcharge".
-If a value is missing, use a reasonable estimate or 0. Focus on accuracy.`;
-
-            const requestBody = {
-                contents: [
-                    {
-                        parts: [
-                            { text: systemPrompt },
-                            {
-                                inline_data: {
-                                    mime_type: mimeType,
-                                    data: base64File,
-                                },
-                            },
-                        ],
-                    },
-                ],
-            };
-
-            try {
-                // Gemini uses ?key= API key param
-                const response = await fetch(`${url}?key=${apiKey}`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(requestBody),
-                });
-
-                if (!response.ok) {
-                    let errorMessage = `HTTP ${response.status}`;
-                    try {
-                        const errData = await response.json();
-                        if (errData.error && errData.error.message) {
-                            errorMessage = errData.error.message;
-                        }
-                    } catch (e) { }
-
-                    const error = new Error(errorMessage);
-                    error.status = response.status;
-                    throw error;
-                }
-
-                const data = await response.json();
-
-                // Parse Gemini Response
-                if (
-                    data.candidates &&
-                    data.candidates[0].content &&
-                    data.candidates[0].content.parts
-                ) {
-                    const text = data.candidates[0].content.parts[0].text;
-                    const cleanJson = text
-                        .replace(/```json/g, "")
-                        .replace(/```/g, "")
-                        .trim();
-                    return JSON.parse(cleanJson);
-                } else {
-                    throw new Error("Invalid response format from AI");
-                }
-            } catch (error) {
-                if (!isRetry && !error.status) {
-                    // Simple retry logic
-                    await new Promise((resolve) => setTimeout(resolve, 2000));
-                    updateLoadingText("Retrying...");
-                    return callAnalyzeAPI(base64File, mimeType, true);
-                }
-                throw error;
-            }
-        }
-
-        function handleApiError(error) {
-            let message = "Analysis failed—check your connection";
-            let showRetry = true;
-
-            if (error.status === 400) {
-                message = "Bad Request - Image may be invalid or rejected by AI";
-                showRetry = false;
-            } else if (error.status === 401 || error.status === 403) {
-                message = "Invalid API key—check developer settings (Ctrl+Shift+S)";
-                showRetry = false;
-            } else if (error.status === 429) {
-                message = "Too many requests—try again later";
-            } else if (error.message) {
-                message = `Error: ${error.message}`;
-            }
-
-            showError(message, showRetry);
-        }
-
-        // =====================================================
-        // DISPLAY REPORT
-        // =====================================================
-        function displayReport(data) {
-            const reportSection = document.getElementById("reportSection");
-            const savingsAmount = document.getElementById("savingsAmount");
-            const tableBody = document.getElementById("reportTableBody");
-
-            reportSection.classList.add("visible");
-
-            const savings = data.summary?.potential_savings || 0;
-            savingsAmount.textContent = `₹${savings.toLocaleString()}`;
-
-            tableBody.innerHTML = "";
-            const items = data.items || [];
-
-            items.forEach((item) => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${escapeHtml(item.name)}</td>
-                    <td>₹${item.charged.toLocaleString()}</td>
-                    <td>₹${item.reference.min.toLocaleString()} - ₹${item.reference.max.toLocaleString()}</td>
-                    <td>${getStatusBadge(item.flag)}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-
-            renderBarCharts(items);
-
-            reportSection.scrollIntoView({ behavior: "smooth" });
-        }
-
-        function getStatusBadge(flag) {
-            const icons = {
-                fair: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
-                borderline:
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>',
-                overcharge:
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
-            };
-            const labels = {
-                fair: "Fair",
-                borderline: "Borderline",
-                overcharge: "Overcharge",
-            };
-
-            return `<span class="status-badge ${flag || "fair"}">${icons[flag] || icons.fair
-                } ${labels[flag] || "Fair"}</span>`;
-        }
-
-        function renderBarCharts(items) {
-            const container = document.getElementById("barChartContainer");
-            container.innerHTML = "";
-
-            if (items.length === 0) return;
-
-            const maxValue = Math.max(
-                ...items.map((item) => Math.max(item.charged, item.reference.max))
-            );
-
-            items.forEach((item) => {
-                const chargedWidth = (item.charged / maxValue) * 100;
-                const refWidth = (item.reference.max / maxValue) * 100;
-
-                const chartHtml = `
-                    <div class="chart-item">
-                        <div class="chart-label">
-                            <span class="chart-name">${escapeHtml(
-                    item.name
-                )}</span>
-                            <span class="chart-values">₹${item.charged.toLocaleString()} / ₹${item.reference.max.toLocaleString()} max</span>
-                        </div>
-                        <div class="chart-bar-bg">
-                            <div class="chart-bar-reference" style="width: ${refWidth}%"></div>
-                            <div class="chart-bar-charged ${item.flag
-                    }" style="width: ${chargedWidth}%"></div>
-                        </div>
-                        <div class="chart-legend">
-                            <span class="legend-item">
-                                <span class="legend-color reference"></span> Reference Max
-                            </span>
-                            <span class="legend-item">
-                                <span class="legend-color charged" style="background: linear-gradient(90deg, var(--teal-dark), var(--teal))"></span> Charged
-                            </span>
-                        </div>
-                    </div>
-                `;
-
-                container.insertAdjacentHTML("beforeend", chartHtml);
-            });
-        }
-
-        // =====================================================
-        // UI HELPERS
-        // =====================================================
-        function showLoading(text) {
-            const overlay = document.getElementById("loadingOverlay");
-            const loadingText = document.getElementById("loadingText");
-            const analyzeBtn = document.getElementById("analyzeButton");
-
-            loadingText.textContent = text;
-            overlay.classList.remove("hidden");
-            analyzeBtn.disabled = true;
-        }
-
-        function updateLoadingText(text) {
-            document.getElementById("loadingText").textContent = text;
-        }
-
-        function hideLoading() {
-            document.getElementById("loadingOverlay").classList.add("hidden");
-            updateAnalyzeButton();
-        }
-
-        function showError(message, showRetry = true) {
-            const errorEl = document.getElementById("errorMessage");
-            const errorText = document.getElementById("errorText");
-            const retryBtn = document.getElementById("retryButton");
-
-            errorText.textContent = message;
-            errorEl.classList.remove("hidden");
-
-            if (showRetry) {
-                retryBtn.classList.remove("hidden");
-            } else {
-                retryBtn.classList.add("hidden");
-            }
-        }
-
-        function hideError() {
-            document.getElementById("errorMessage").classList.add("hidden");
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement("div");
-            div.textContent = text;
-            return div.innerHTML;
-        }
-    </script>
+    <div class="form-group">
+      <label class="form-label" for="geminiApiKey">Gemini API Key</label>
+      <input type="password" id="geminiApiKey" class="form-input" placeholder="Enter your Gemini API key" />
+      <span class="form-note">Your API key is stored locally and never sent anywhere except Google's API</span>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="systemPrompt">System Prompt</label>
+      <textarea id="systemPrompt" class="form-input" placeholder="Leave empty for default prompt" rows="8"></textarea>
+      <span class="form-note">Customize the AI analysis instructions</span>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 
 </html>
