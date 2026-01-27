@@ -54,7 +54,8 @@ We've done our best to create a compelling proof-of-concept within the available
 3. Explore the sample bill analysis
 4. Review the price database to understand our comparison framework
 
-                 or
+   or
+   
 Check out our Github Pages Site: https://noahxcs.github.io/ScanRx/
 
 ## The Future of ScanRx
