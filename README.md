@@ -4,7 +4,7 @@
 
 The medical industry, while dedicated to healing, is often marred by opaque pricing practices and staggering bills that leave patients in financial shock. It's an open secret: medical billing is complex, inconsistent, and frequently includes errors or inflated charges. Patients routinely face "sticker shock" when receiving bills for thousands of dollars for procedures they believed were covered, or encounter mysterious line items with exorbitant prices that bear little relation to fair market value.
 
-These malpractices range from simple billing errors and duplicate charges to more systematic issues like "surprise billing" and dramatic price variation for identical services. The result? Patients either pay bills they can't afford or embark on exhausting, time-consuming disputes with insurers and providers—often without the specialized knowledge needed to challenge charges effectively.
+These malpractices range from simple billing errors and duplicate charges to more systematic issues like "surprise billing" and dramatic price variation for identical services. The result? Patients either pay bills they can't afford or embark on exhausting, time-consuming disputes with insurers and providers often without the specialized knowledge needed to challenge charges effectively.
 
 ## Our Solution: ScanRx
 (https://noahxcs.github.io/ScanRx/)
